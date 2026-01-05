@@ -29,29 +29,64 @@ class BookMyShowMonitor:
         self.last_scan_time = None
         self.monitoring_task = None
         
-    def setup_driver(self):
-        """Initialize Selenium WebDriver with headless Chrome"""
-        print("🔧 Setting up Chrome WebDriver...")
-        chrome_options = Options()
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument('--disable-dev-shm-usage')
-        chrome_options.add_argument('--disable-gpu')
-        chrome_options.add_argument('--window-size=1920,1080')
-        chrome_options.add_argument('--disable-blink-features=AutomationControlled')
-        chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        chrome_options.add_experimental_option('useAutomationExtension', False)
-        
+   def setup_driver(self):
+    """Initialize Selenium WebDriver with headless Chrome"""
+    print("🔧 Setting up Chrome WebDriver...")
+    chrome_options = Options()
+    
+    # Railway/Cloud compatibility
+    chrome_options.add_argument('--headless=new')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    chrome_options.add_argument('--disable-gpu')
+    chrome_options.add_argument('--disable-software-rasterizer')
+    chrome_options.add_argument('--disable-extensions')
+    chrome_options.add_argument('--disable-setuid-sandbox')
+    chrome_options.add_argument('--window-size=1920,1080')
+    chrome_options.add_argument('--disable-blink-features=AutomationControlled')
+    chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_experimental_option('useAutomationExtension', False)
+    
+    # For Railway - use system Chrome/Chromium
+    chrome_options.binary_location = '/usr/bin/chromium-browser'
+    
+    try:
+        # Try with ChromeDriverManager first
         try:
             service = Service(ChromeDriverManager().install())
             self.driver = webdriver.Chrome(service=service, options=chrome_options)
-            self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-            print("✅ Browser initialized successfully")
-            return True
-        except Exception as e:
-            print(f"❌ Failed to initialize browser: {e}")
-            return False
+        except:
+            # Fallback to system chromedriver
+            print("⚠️ Trying system chromedriver...")
+            self.driver = webdriver.Chrome(options=chrome_options)
+        
+        self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        print("✅ Browser initialized successfully")
+        return True
+    except Exception as e:
+        print(f"❌ Failed to initialize browser: {e}")
+        
+        # Try alternative paths
+        alternative_paths = [
+            '/usr/bin/chromium',
+            '/usr/bin/google-chrome',
+            '/usr/bin/chromium-browser',
+        ]
+        
+        for path in alternative_paths:
+            try:
+                print(f"🔄 Trying Chrome at: {path}")
+                chrome_options.binary_location = path
+                self.driver = webdriver.Chrome(options=chrome_options)
+                self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+                print(f"✅ Browser initialized successfully with {path}")
+                return True
+            except:
+                continue
+        
+        print("❌ Could not find Chrome/Chromium")
+        return False
         
     def setup_telegram(self):
         """Initialize Telegram Bot with handlers"""
