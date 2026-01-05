@@ -1,0 +1,13 @@
+[phases.setup]
+nixPkgs = ['python311', 'chromium', 'chromedriver']
+aptPkgs = ['fonts-liberation', 'libnss3', 'libatk-bridge2.0-0', 'libdrm2', 'libxkbcommon0', 'libgbm1', 'libasound2']
+
+[phases.install]
+cmds = ['pip install --upgrade pip', 'pip install -r requirements.txt']
+
+[start]
+cmd = 'python -u bot.py'
+
+[variables]
+CHROME_BIN = '/nix/store/*-chromium-*/bin/chromium'
+CHROMEDRIVER_PATH = '/nix/store/*-chromedriver-*/bin/chromedriver'
