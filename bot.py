@@ -922,4 +922,14 @@ def main():
     asyncio.run(monitor.run())
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Bot stopped")
+    except Exception as e:
+        print(f"Error: {e}")
+        # Keep container alive even on error
+        import time
+        while True:
+            time.sleep(60)
+            print("Container still running...")
